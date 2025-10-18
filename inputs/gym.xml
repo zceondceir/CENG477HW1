@@ -1,0 +1,304 @@
+<Scene>
+	<BackgroundColor>0 0 0</BackgroundColor>
+	<ShadowRayEpsilon>1e-3</ShadowRayEpsilon>
+	<MaxRecursionDepth>6</MaxRecursionDepth>
+	<Cameras>
+		<Camera id="1">
+			<Position>0 10 15</Position>
+			<Gaze>0 -0.4 -1</Gaze>
+			<Up>0 1 0</Up>
+			<NearPlane>-1.25 1.25 -1 1</NearPlane>
+			<NearDistance>1</NearDistance>
+			<ImageResolution>1000 800</ImageResolution>
+			<NumSamples>1</NumSamples>
+			<ImageName>gym.ppm</ImageName>
+		</Camera>
+		<Camera id="1">
+			<Position>15 10 15</Position>
+			<Gaze>-0.4 -0.4 -1</Gaze>
+			<Up>0 1 0</Up>
+			<NearPlane>-1.25 1.25 -1 1</NearPlane>
+			<NearDistance>1</NearDistance>
+			<ImageResolution>1000 800</ImageResolution>
+			<NumSamples>1</NumSamples>
+			<ImageName>gym_reverse.ppm</ImageName>
+		</Camera>
+	</Cameras>
+	<Lights>
+		<AmbientLight>25 25 25</AmbientLight>
+		<PointLight id="1">
+			<Position>14 30 20</Position>
+			<Intensity>100000 100000 100000</Intensity>
+		</PointLight>
+		<PointLight id="2">
+			<Position>-14 30 20</Position>
+			<Intensity>100000 100000 100000</Intensity>
+		</PointLight>
+	</Lights>
+	<Materials>
+		<Material id="1">
+			<AmbientReflectance>1 1 1</AmbientReflectance>
+			<DiffuseReflectance>0.45 0.30 0.18</DiffuseReflectance>
+			<SpecularReflectance>0.2 0.2 0.2</SpecularReflectance>
+			<MirrorReflectance>0 0 0</MirrorReflectance>
+			<PhongExponent>12</PhongExponent>
+		</Material>
+		<Material id="2">
+			<AmbientReflectance>1 1 1</AmbientReflectance>
+			<DiffuseReflectance>0.07 0.22 0.6</DiffuseReflectance>
+			<SpecularReflectance>0.9 0.9 0.9</SpecularReflectance>
+			<MirrorReflectance>0 0 0</MirrorReflectance>
+			<PhongExponent>80</PhongExponent>
+		</Material>
+		<Material id="3">
+			<AmbientReflectance>1 1 1</AmbientReflectance>
+			<DiffuseReflectance>0.26 0.26 0.29</DiffuseReflectance>
+			<SpecularReflectance>1 1 1</SpecularReflectance>
+			<MirrorReflectance>0.5 0.5 0.5</MirrorReflectance>
+			<PhongExponent>120</PhongExponent>
+		</Material>
+		<Material id="4">
+			<AmbientReflectance>1 1 1</AmbientReflectance>
+			<DiffuseReflectance>0.06 0.06 0.06</DiffuseReflectance>
+			<SpecularReflectance>0.7 0.7 0.7</SpecularReflectance>
+			<MirrorReflectance>0 0 0</MirrorReflectance>
+			<PhongExponent>100</PhongExponent>
+		</Material>
+		<Material id="5" type="mirror">
+			<AmbientReflectance>1 1 1</AmbientReflectance>
+			<DiffuseReflectance>1 1 1</DiffuseReflectance>
+			<SpecularReflectance>1 1 1</SpecularReflectance>
+			<MirrorReflectance>1 1 1</MirrorReflectance>
+			<PhongExponent>50</PhongExponent>
+		</Material>
+		<Material id="6">
+			<AmbientReflectance>0 0 0</AmbientReflectance>
+			<DiffuseReflectance>0.35 0.22 0.12</DiffuseReflectance>
+			<SpecularReflectance>0.15 0.15 0.15</SpecularReflectance>
+			<MirrorReflectance>0 0 0</MirrorReflectance>
+			<PhongExponent>12</PhongExponent>
+		</Material>
+		<Material id="7">
+			<AmbientReflectance>0 0 0</AmbientReflectance>
+			<DiffuseReflectance>0.0 0.0 0.0</DiffuseReflectance>
+			<SpecularReflectance>0 0 0</SpecularReflectance>
+			<MirrorReflectance>0 0 0</MirrorReflectance>
+			<PhongExponent>12</PhongExponent>
+		</Material>
+	</Materials>
+	<VertexData>
+        -100 0  100
+         100 0  100
+         100 0 -100
+        -100 0 -100
+        -200 0 -40
+         200 0 -40
+         200 10 -40
+        -200 10 -40
+        -7 2.5 -3
+         7 2.5 -3
+        -9 5 -6     
+        9 5 -6      
+        8.1 6 -5.1  
+        -8.1 6 -5.1 
+        -9 5  0     
+        9 5  0      
+        8.1 6  -0.9  
+        -8.1 6  -0.9 
+        0 0 -11
+        0 0 0
+        -6.0 1.1  2.0
+        -7.5 1.1  2.0
+        -4.5 1.1  2.0
+        2.0 1.1  4.0 
+        2.0 1.1  2.5 
+        2.0 1.1  5.5 
+        0.0 1.1  6.0 
+        -1.061 1.1 4.939 
+        1.061 1.1 7.061
+        0 0 40
+        -18 0 0
+        -200 0   -10.8
+        200 0   -10.8
+        200 0.6 -10.8
+        -200 0.6 -10.8
+        -200 0.6 -10.8
+        200 0.6 -10.8
+        200 0.6 -10.4
+        -200 0.6 -10.4
+        -17.8  0   -50  
+        -17.8  0    50  
+        -17.8  0.6  50  
+        -17.8  0.6 -50  
+        -17.8   0.6 -50 
+        -17.8   0.6  50 
+        -17.4 0.6  50 
+        -17.4 0.6 -50 
+        -200 0    40  
+        200 0    40  
+        200 0.6  40  
+        -200 0.6  40
+        -200 0.6  40 
+        200 0.6  40  
+        200 0.6  39.6
+        -200 0.6  39.6
+    </VertexData>
+	<Objects>
+		<Plane>
+			<Material>1</Material>
+			<Center>20</Center>
+			<Normal>0 1 0</Normal>
+		</Plane>
+		<Plane>
+			<Material>5</Material>
+			<Center>19</Center>
+			<Normal>0 0 1</Normal>
+		</Plane>
+		<Plane>
+			<Material>6</Material>
+			<Center>30</Center>
+			<Normal>0 0 -1</Normal>
+		</Plane>
+		<Plane>
+			<Material>5</Material>
+			<Center>31</Center>
+			<Normal>1 0 0</Normal>
+		</Plane>
+		<Cylinder id="bench_leg_L">
+			<Material>3</Material>
+			<Center>9</Center>
+			<Axis>0 1 0</Axis>
+			<Radius>0.25</Radius>
+			<Height>5</Height>
+		</Cylinder>
+		<Cylinder id="bench_leg_R">
+			<Material>3</Material>
+			<Center>10</Center>
+			<Axis>0 1 0</Axis>
+			<Radius>0.25</Radius>
+			<Height>5</Height>
+		</Cylinder>
+		<Mesh id="cuboid">
+			<Material>4</Material>
+			<Faces>
+                11 13 12
+                11 14 13
+                15 16 17
+                15 17 18
+                11 15 18
+                11 18 14
+                12 17 16
+                12 13 17
+                11 12 16
+                11 16 15
+                14 17 13
+                14 18 17
+            </Faces>
+		</Mesh>
+		<Cylinder id="db1_handle">
+			<Material>3</Material>
+			<Center>21</Center>
+			<Axis>1 0 0</Axis>
+			<Radius>0.25</Radius>
+			<Height>3.0</Height>
+		</Cylinder>
+		<Cylinder id="db1_plate_L">
+			<Material>4</Material>
+			<Center>22</Center>
+			<Axis>1 0 0</Axis>
+			<Radius>1.10</Radius>
+			<Height>0.50</Height>
+		</Cylinder>
+		<Cylinder id="db1_plate_R">
+			<Material>4</Material>
+			<Center>23</Center>
+			<Axis>1 0 0</Axis>
+			<Radius>1.10</Radius>
+			<Height>0.50</Height>
+		</Cylinder>
+		<Cylinder id="db2_handle">
+			<Material>3</Material>
+			<Center>24</Center>
+			<Axis>0 0 1</Axis>
+			<Radius>0.25</Radius>
+			<Height>3.0</Height>
+		</Cylinder>
+		<Cylinder id="db2_plate_N">
+			<Material>4</Material>
+			<Center>25</Center>
+			<Axis>0 0 1</Axis>
+			<Radius>1.10</Radius>
+			<Height>0.50</Height>
+		</Cylinder>
+		<Cylinder id="db2_plate_F">
+			<Material>4</Material>
+			<Center>26</Center>
+			<Axis>0 0 1</Axis>
+			<Radius>1.10</Radius>
+			<Height>0.50</Height>
+		</Cylinder>
+		<Cylinder id="db3_handle">
+			<Material>3</Material>
+			<Center>27</Center>
+			<Axis>1 0 1</Axis>
+			<Radius>0.25</Radius>
+			<Height>3.0</Height>
+		</Cylinder>
+		<Cylinder id="db3_plate_A">
+			<Material>4</Material>
+			<Center>28</Center>
+			<Axis>1 0 1</Axis>
+			<Radius>1.10</Radius>
+			<Height>0.50</Height>
+		</Cylinder>
+		<Cylinder id="db3_plate_B">
+			<Material>4</Material>
+			<Center>29</Center>
+			<Axis>1 0 1</Axis>
+			<Radius>1.10</Radius>
+			<Height>0.50</Height>
+		</Cylinder>
+		<Mesh id="plinth_back_vertical">
+			<Material>7</Material>
+			<Faces>
+            32 33 34
+            32 34 35
+        </Faces>
+		</Mesh>
+		<Mesh id="plinth_back_top">
+			<Material>7</Material>
+			<Faces>
+            36 37 38
+            36 38 39
+        </Faces>
+		</Mesh>
+		<Mesh id="plinth_left_vertical">
+			<Material>7</Material>
+			<Faces>
+            40 41 42
+            40 42 43
+        </Faces>
+		</Mesh>
+		<Mesh id="plinth_left_top">
+			<Material>7</Material>
+			<Faces>
+            44 45 46
+            44 46 47
+        </Faces>
+		</Mesh>
+		<Mesh id="plinth_front_vertical">
+			<Material>7</Material>
+			<Faces>
+            49 48 51
+            49 51 50
+        </Faces>
+		</Mesh>
+		<Mesh id="plinth_front_top">
+			<Material>7</Material>
+			<Faces>
+            52 53 54
+            52 54 55
+        </Faces>
+		</Mesh>
+	</Objects>
+</Scene>
