@@ -10,11 +10,57 @@
 
 #define INF std::numeric_limits<float>::max()
 
+#define EPS 1e-8f;
+
 namespace parser
 {
     //Notice that all the structures are as simple as possible
     //so that you are not enforced to adopt any style or design.
     
+    class Vec3f                
+    {
+    public:
+        
+        float x, y, z;
+
+        Vec3f() : x(0) , y(0) , z(0) {}
+
+        Vec3f(float xx, float yy , float zz) { x = xx; y = yy ; z = zz;}
+
+
+        Vec3f operator+(const Vec3f& v) const { return Vec3f(x + v.x, y + v.y, z + v.z); }
+        Vec3f operator-(const Vec3f& v) const { return Vec3f(x - v.x, y - v.y, z - v.z); }
+
+        Vec3f operator*(float s) const { return Vec3f(x * s, y * s, z * s); }
+        Vec3f operator/(float s) const { return Vec3f(x / s, y / s, z / s); }
+
+        
+        float operator*(const Vec3f& v) const { return x * v.x + y * v.y + z * v.z; }
+
+        Vec3f operator^(const Vec3f& v) const {
+            return Vec3f(
+                y * v.z - z * v.y,
+                z * v.x - x * v.z,
+                x * v.y - y * v.x
+            );
+        }
+
+        float len (){
+            return std::sqrt(x*x + y*y + z*z);
+        }
+
+
+        Vec3f normalized() const {
+            float len = std::sqrt(x*x + y*y + z*z);
+            if (len == 0.0f)  // sıfır vektör kontrolü
+                return Vec3f(0, 0, 0);
+            return Vec3f(x / len, y / len, z / len);
+        }
+
+
+    };
+
+
     struct Vec3i
     {
         int x, y, z;
@@ -185,45 +231,23 @@ namespace parser
     
 */
 
-    class Vec3f                
-    {
+    
+
+
+    class Ray {
     public:
+        Vec3f origin;
+        Vec3f direction;
+        int depth;
+
+        Ray() : origin(Vec3f()), direction(Vec3f()), depth(0) {}
+        Ray(const Vec3f& o, const Vec3f& d, int dept) : origin(o), direction(d), depth(dept) {}
+
+        inline Vec3f at(float t) const { return origin + direction * t; }
+ 
         
-        float x, y, z;
-
-        Vec3f() : x(0) , y(0) , z(0) {}
-
-        Vec3f(float xx, float yy , float zz) { x = xx; y = yy ; z = zz;}
-
-
-        Vec3f operator+(const Vec3f& v) const { return Vec3f(x + v.x, y + v.y, z + v.z); }
-        Vec3f operator-(const Vec3f& v) const { return Vec3f(x - v.x, y - v.y, z - v.z); }
-
-        Vec3f operator*(float s) const { return Vec3f(x * s, y * s, z * s); }
-        Vec3f operator/(float s) const { return Vec3f(x / s, y / s, z / s); }
-
-        
-        float operator*(const Vec3f& v) const { return x * v.x + y * v.y + z * v.z; }
-
-        Vec3f operator^(const Vec3f& v) const {
-            return Vec3f(
-                y * v.z - z * v.y,
-                z * v.x - x * v.z,
-                x * v.y - y * v.x
-            );
-        }
-
-        Vec3f normalized() const {
-            float len = std::sqrt(x*x + y*y + z*z);
-            if (len == 0.0f)  // sıfır vektör kontrolü
-                return Vec3f(0, 0, 0);
-            return Vec3f(x / len, y / len, z / len);
-        }
-
 
     };
-
-
 
     class HitRecord {
     public:
@@ -231,35 +255,23 @@ namespace parser
         Vec3f point;      
         Vec3f normal;     // for shading
         bool hit;            // 
-        const void* object;  // 
+        int Mid;
 
         HitRecord()
             : t(INF),
             point(Vec3f()),
             normal(Vec3f()),
             hit(false),
-            object(nullptr)
+            Mid(-1)
         {}
     };
 
 
-    class Ray {
-    public:
-        Vec3f origin;
-        Vec3f direction;
-
-        Ray() : origin(Vec3f()), direction(Vec3f()) {}
-        Ray(const Vec3f& o, const Vec3f& d) : origin(o), direction(d) {}
-
-        Vec3f at(float t) const { return origin + direction * t; }
- 
-        
-
-    };
+    
 
 
 
-};
+}
 
 
 
