@@ -234,20 +234,20 @@ namespace parser
     
 
 
-    class Ray {
-    public:
-        Vec3f origin;
-        Vec3f direction;
-        int depth;
+        class Ray {
+        public:
+            Vec3f origin;
+            Vec3f direction;
+            
 
-        Ray() : origin(Vec3f()), direction(Vec3f()), depth(0) {}
-        Ray(const Vec3f& o, const Vec3f& d, int dept) : origin(o), direction(d), depth(dept) {}
+            Ray() : origin(Vec3f()), direction(Vec3f()) {}
+            Ray(const Vec3f& o, const Vec3f& d) : origin(o), direction(d) {}
 
-        inline Vec3f at(float t) const { return origin + direction * t; }
- 
-        
+            inline Vec3f at(float t) const { return origin + direction * t; }
+    
+            
 
-    };
+        };
 
     class HitRecord {
     public:

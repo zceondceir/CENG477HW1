@@ -1,13 +1,10 @@
 #include <iostream>
 #include "parser.h"
 #include "ppm.h"
+#include <windows.h>
 #include <chrono>
 
 typedef unsigned char RGB[3];
-
-
-
-//render.h
 
 
 
@@ -16,9 +13,9 @@ inline float determinant (const parser::Vec3f &a, const parser::Vec3f &b, const 
 }
 
 
-//const parser::Vec3f &o, const parser::Vec3f &d
 
-inline void intersectsTriangle(const parser::Vec3f &o, const parser::Vec3f &d, const parser::Triangle &t, parser::HitRecord& h, const parser::Scene& s){
+
+void intersectsTriangle(const parser::Vec3f &o, const parser::Vec3f &d, const parser::Triangle &t, parser::HitRecord& h, const parser::Scene& s, bool BFC){
 
 
     const parser::Vec3f &a = s.vertex_data[t.indices.v0_id-1];
@@ -31,7 +28,7 @@ inline void intersectsTriangle(const parser::Vec3f &o, const parser::Vec3f &d, c
 
     parser::Vec3f normal = ab ^ ac;
 
-    if(normal * d > 0){
+    if(BFC && normal * d > 0){
         return;
     }
 
@@ -55,26 +52,28 @@ inline void intersectsTriangle(const parser::Vec3f &o, const parser::Vec3f &d, c
 
 }
 
-inline void intersectsSphere(const parser::Vec3f &o, const parser::Vec3f &d, const parser::Sphere &sp, parser::HitRecord& h, const parser::Scene& s){
+void intersectsSphere(const parser::Vec3f &o, const parser::Vec3f &d, const parser::Sphere &sp, parser::HitRecord& h, const parser::Scene& s){
 
     const parser::Vec3f &c = s.vertex_data[sp.center_vertex_id - 1];
     
     parser::Vec3f oc = o - c;
 
+    float A = d * d;
     float B = d * (oc) * 2;
     float C = (oc) * (oc) - (sp.radius * sp.radius);
 
-    float disc = B * B - 4 * C;
+    float disc = B * B - 4 * A * C;
 
     if(disc < 0.0f)    return;
     
 
     float sqrt = std::sqrt(disc);
-    float t1 =  (-B + sqrt) / (2.0f);
-    float t2 =  (-B - sqrt) / (2.0f);
+    float t1 =  (-B + sqrt) / (2.0f * A);
+    float t2 =  (-B - sqrt) / (2.0f * A);
     float t = std::min(t1,t2);
-    if(t < 0.0f ) return;
- 
+    
+    if (t < 0) return;
+    
     if( h.t > t){
         h.hit = true;
         h.t = t;  
@@ -87,9 +86,9 @@ inline void intersectsSphere(const parser::Vec3f &o, const parser::Vec3f &d, con
 
 }
 
-inline void intersectsPlane(const parser::Vec3f &o, const parser::Vec3f &d, const parser::Plane &p, parser::HitRecord& h, const parser::Scene& s){
+void intersectsPlane(const parser::Vec3f &o, const parser::Vec3f &d, const parser::Plane &p, parser::HitRecord& h, const parser::Scene& s){
 
-    const parser::Vec3f &n = p.normal;
+    parser::Vec3f n = p.normal.normalized();
     const parser::Vec3f &a = s.vertex_data[p.center_vertex_id - 1];
     
     float dn = d * n;
@@ -98,26 +97,29 @@ inline void intersectsPlane(const parser::Vec3f &o, const parser::Vec3f &d, cons
 
     float t = (a - o) * n / dn ;
 
-    if (t < s.shadow_ray_epsilon) return;
+    if (t < 0) return;
 
-    if(h.t > t){
+    if(t < h.t){
         h.hit = true;
         h.t = t;
+        if (d * n > 0.0f)
+            n = n * -1.0f;
         h.normal = n;
         h.point = o + d * t;
         h.Mid = p.material_id;
     }
 
+     
+
 }
 
-void intersectsCylinder(const parser::Ray &r, const parser::Cylinder &cyl, parser::HitRecord& h, const parser::Scene& s)
+void intersectsCylinder(const parser::Vec3f &o, const parser::Vec3f &d
+, const parser::Cylinder &cyl, parser::HitRecord& h, const parser::Scene& s)
 {
-    parser::Vec3f o = r.origin;
-    parser::Vec3f d = r.direction;
     parser::Vec3f C = s.vertex_data[cyl.center_vertex_id - 1];
-    parser::Vec3f v = cyl.axis.normalized();  // eksen yönü normalize olmalı
+    parser::Vec3f v = cyl.axis.normalized();  
 
-    // --- 1. Sonsuz silindir kesişimi ---
+    
     parser::Vec3f delta = o - C;
     float dv = d*v;
     float delta_v = delta * v;
@@ -130,7 +132,7 @@ void intersectsCylinder(const parser::Ray &r, const parser::Cylinder &cyl, parse
     float Cc = (delta_perp * delta_perp) - cyl.radius * cyl.radius;
 
     float disc = B * B - 4.0f * A * Cc;
-    if (disc < 0.0f) return; // kesişim yok
+    if (disc < 0.0f) return; 
 
     float sqrt_disc = sqrt(disc);
     float t1 = (-B - sqrt_disc) / (2.0f * A);
@@ -146,7 +148,7 @@ void intersectsCylinder(const parser::Ray &r, const parser::Cylinder &cyl, parse
         float proj = (P - C) * v;
         float halfH = cyl.height * 0.5f;
 
-        // --- 2. Yükseklik kontrolü ---
+        
         if (proj >= -halfH && proj <= halfH) {
             if (t_cyl < h.t) {
                 h.hit = true;
@@ -160,12 +162,12 @@ void intersectsCylinder(const parser::Ray &r, const parser::Cylinder &cyl, parse
         }
     }
 
-    // --- 3. Üst ve alt kapak kontrolü ---
+    
     float halfH = cyl.height * 0.5f;
     parser::Vec3f capTopCenter = C + v * halfH;
     parser::Vec3f capBotCenter = C - v * halfH;
 
-    // Üst kapak
+    
     {
         float denom = d * v;
         if (fabs(denom) > 1e-6f) {
@@ -177,7 +179,6 @@ void intersectsCylinder(const parser::Ray &r, const parser::Cylinder &cyl, parse
                     h.t = t_cap;
                     h.point = P;
                     h.normal = v;
-                    
                     h.Mid = cyl.material_id;
 
                 }
@@ -185,7 +186,7 @@ void intersectsCylinder(const parser::Ray &r, const parser::Cylinder &cyl, parse
         }
     }
 
-    // Alt kapak
+    
     {
         float denom = d * v;
         if (fabs(denom) > 1e-6f) {
@@ -207,53 +208,7 @@ void intersectsCylinder(const parser::Ray &r, const parser::Cylinder &cyl, parse
 
 
 
-inline void intersectsMesh(const parser::Ray &r, const parser::Mesh &m, parser::HitRecord& h, const parser::Scene& s, bool BFC){
-
-    for(const parser::Face &f : m.faces){
-
-        const parser::Vec3f a = s.vertex_data[f.v0_id-1];
-        parser::Vec3f b = s.vertex_data[f.v1_id-1];
-        parser::Vec3f c = s.vertex_data[f.v2_id-1];
-
-        parser::Vec3f o = r.origin;
-        parser::Vec3f d = r.direction;
-
-        float detA = determinant(a-b,a-c,d);
-
-        if (fabs(detA) < 1e-8) continue;
-
-        float beta = determinant(a-o,a-c,d)/detA;
-        float gamma = determinant(a-b,a-o,d)/detA;
-        float tRay = determinant(a-b,a-c,a-o)/detA;
-
-        parser::Vec3f normal = ((b - a) ^ (c - a)).normalized();
-
-        if(BFC){
-
-            
-            if(normal  * d > 0 ){
-                continue;
-            }
-        }
-        
-    
-        if( beta >= 0 && gamma >= 0 && beta + gamma <= 1 && tRay < h.t && tRay > 1e-6f ){
-            h.hit = true;
-            h.t = tRay;
-            h.normal = normal;
-            h.point = r.at(tRay);
-            h.Mid = m.material_id;
-        } 
-    }
-    
-    //          v0 = a
-    //
-    //     v1=b         v2 = c
-
-}
-
-
-inline void intersectsMesh(const parser::Vec3f &o, const parser::Vec3f &d, const parser::Mesh &m, parser::HitRecord& h, const parser::Scene& s){
+void intersectsMesh(const parser::Vec3f &o, const parser::Vec3f &d, const parser::Mesh &m, parser::HitRecord& h, const parser::Scene& s,bool BFC){
 
     for(const parser::Face &f : m.faces){
 
@@ -267,13 +222,13 @@ inline void intersectsMesh(const parser::Vec3f &o, const parser::Vec3f &d, const
 
         parser::Vec3f normal = ab ^ ac;
 
-        if(normal * d > 0){
-            continue;;
+        if(BFC && normal * d > 0){
+            continue;   
         }
 
         float detA = determinant(ab,ac,d);
 
-        if (fabs(detA) < 1e-8) continue;;
+        if (fabs(detA) < 1e-8) continue;
 
         float beta = determinant(ao,ac,d)/detA;
         float gamma = determinant(ab,ao,d)/detA;
@@ -285,15 +240,14 @@ inline void intersectsMesh(const parser::Vec3f &o, const parser::Vec3f &d, const
             h.t = tRay;
             h.point = o + d * tRay;
             h.Mid = m.material_id;
-
         } 
     
     }
-    //          v0 = a
-    //
-    //     v1=b         v2 = c
 
 }
+
+
+
 
 parser::Vec3f getPixelRay(const parser::Camera &c, const int i, const int j){
 
@@ -316,17 +270,17 @@ parser::Vec3f getPixelRay(const parser::Camera &c, const int i, const int j){
     
     parser::Vec3f s = q + u * su - v * sv;
 
-    return s - e;
+    return (s - e).normalized();
 
 
 }
 
 
-void renderRay(const parser::Scene &scene, const parser::Ray &r, parser::HitRecord & closestHit){
+void renderRay(const parser::Scene &scene, const parser::Ray &r, parser::HitRecord & closestHit, bool BFC){
         
     for(const parser::Triangle &t : scene.triangles) {
 
-        intersectsTriangle(r.origin,r.direction,t,closestHit,scene);
+        intersectsTriangle(r.origin,r.direction,t,closestHit,scene,BFC);
 
     }
     for(const parser::Sphere &s : scene.spheres) {
@@ -342,54 +296,54 @@ void renderRay(const parser::Scene &scene, const parser::Ray &r, parser::HitReco
 
     for(const parser::Cylinder &c : scene.cylinders){
 
-        intersectsCylinder(r,c,closestHit,scene);
+        intersectsCylinder(r.origin,r.direction,c,closestHit,scene);
 
     }
 
     for(const parser::Mesh &m : scene.meshes){
 
-        intersectsMesh(r,m,closestHit,scene,true);
+        intersectsMesh(r.origin,r.direction,m,closestHit,scene,BFC);
 
     }
 
 }
 
-bool inShadow(const parser::Scene &scene,const parser::Ray &r, const float t){
+bool inShadow(const parser::Scene &scene,const parser::Vec3f &offSet,const parser::Vec3f &ShadowDirection, const float t){
 
     parser::HitRecord hr;
     hr.t = t;
 
     for(const parser::Triangle &t : scene.triangles) {
 
-        intersectsTriangle(r.origin,r.direction,t,hr,scene);
-        if(hr.hit) return true;
+        intersectsTriangle(offSet,ShadowDirection,t,hr,scene,false);
+        if(hr.hit && hr.t >= 0.0f) return true;
 
     }
     
     for(const parser::Sphere &s : scene.spheres) {
 
-        intersectsSphere(r.origin,r.direction,s,hr,scene);
+        intersectsSphere(offSet,ShadowDirection,s,hr,scene);
         if(hr.hit) return true;
             
     }
     for(const parser::Plane &p : scene.planes) {
         
-        intersectsPlane(r.origin,r.direction,p,hr,scene);
+        intersectsPlane(offSet,ShadowDirection,p,hr,scene);
         if(hr.hit) return true;
             
     }    
 
     for(const parser::Cylinder &c : scene.cylinders){
 
-        intersectsCylinder(r,c,hr,scene);
+        intersectsCylinder(offSet,ShadowDirection,c,hr,scene);
         if(hr.hit) return true;
 
     }
 
     for(const parser::Mesh &m : scene.meshes){
 
-        intersectsMesh(r,m,hr,scene,true);
-        if(hr.hit) return true;
+        intersectsMesh(offSet,ShadowDirection,m,hr,scene,false);
+        if(hr.hit && hr.t >= 1e-8f) return true;
 
     }
     
@@ -402,24 +356,21 @@ parser::Ray Reflect(const parser::HitRecord &hitrecord, const parser::Scene &s, 
     parser::Ray refRay;
 
     
-    parser::Vec3f wo = incomingRay.direction.normalized() * -1;
+    parser::Vec3f wo = incomingRay.direction.normalized();
     parser::Vec3f normal = hitrecord.normal.normalized();
-
    
-    parser::Vec3f wr = (wo * -1) + normal * (normal * wo) * 2.0f;
+    parser::Vec3f wr = wo - normal * (normal * wo * 2.0f);
 
     refRay.direction = wr.normalized();
-    refRay.origin = hitrecord.point + normal * 1e-4f;
+    refRay.origin = hitrecord.point + (normal * 0.001);
     
-    refRay.depth = incomingRay.depth + 1;
-
     return refRay;
 }
 
-parser::Vec3i GetColor(const parser::HitRecord &hitrecord, const parser::Scene &s, const parser::Ray &r ){
+parser::Vec3i GetColor(const parser::HitRecord &hitrecord, const parser::Scene &s, const parser::Ray &r, int depth){
 
-
-    if ( r.depth > s.max_recursion_depth ){
+    
+    if ( depth > s.max_recursion_depth  ){
         return parser::Vec3i {0,0,0};
     }
 
@@ -437,13 +388,14 @@ parser::Vec3i GetColor(const parser::HitRecord &hitrecord, const parser::Scene &
         parser::Vec3f v = r.direction.normalized() * -1;
         //check shadow
 
-        parser::Vec3f antiCollision = hitrecord.point + hitrecord.normal * (1e-8);
-        parser::Vec3f shadowVector = (light.position - antiCollision).normalized();
-        float t = (light.position - hitrecord.point).len();
-        parser::Ray shadowRay(antiCollision,shadowVector,0);
+        parser::Vec3f antiCollision = hitrecord.point + (hitrecord.normal * s.shadow_ray_epsilon);
+        parser::Vec3f sV = (light.position - antiCollision);
+        float t = sV.len();
+        sV = sV.normalized();
         
 
-        if(inShadow(s,shadowRay,t)){
+        
+        if(inShadow(s,antiCollision,sV,t)){
             continue;
         }
 
@@ -493,21 +445,17 @@ parser::Vec3i GetColor(const parser::HitRecord &hitrecord, const parser::Scene &
             
             parser::HitRecord reflectionRecord;
 
-            if(reflection.depth < s.max_recursion_depth){
-                
-                renderRay(s,reflection,reflectionRecord);
+            renderRay(s,reflection,reflectionRecord,false);
 
-                if (reflectionRecord.hit)
-                {
-                    parser::Vec3i refcolor = GetColor(reflectionRecord,s,r);
-                    color_r += material.mirror.x * refcolor.x;
-                    color_g += material.mirror.y * refcolor.y;
-                    color_b += material.mirror.z * refcolor.z; 
-                }   
+            if (reflectionRecord.hit)
+            {
+                parser::Vec3i refcolor = GetColor(reflectionRecord,s,reflection,depth +1);
+                color_r += material.mirror.x * refcolor.x;
+                color_g += material.mirror.y * refcolor.y;
+                color_b += material.mirror.z * refcolor.z; 
+            }        
 
-            }
 
-            
         }
 
     if(color_r > 255) color_r = 255;
@@ -527,7 +475,7 @@ parser::Vec3i GetColor(const parser::HitRecord &hitrecord, const parser::Scene &
 
 int main(int argc, char* argv[])
 {
-    // Sample usage for reading an XML scene file
+    
     
     auto start = std::chrono::high_resolution_clock::now();
 
@@ -537,15 +485,15 @@ int main(int argc, char* argv[])
 
     int cameraId = 1;
 
-    //rendering part
-
     
-
+    std::cout << scene.max_recursion_depth;
+    
+    
+   
 
 
     for(const parser::Camera& c : scene.cameras){
 
-        
 
         std::string filename = "ouroutputs/" + std::string(argv[1]) + "_camera" + std::to_string(cameraId++) + ".ppm";
 
@@ -554,34 +502,36 @@ int main(int argc, char* argv[])
 
         unsigned char* image = new unsigned char [width * height * 3];
 
-        int i = 0;
+        
         for (int y = 0; y < height; ++y)
         {
             for (int x = 0; x < width; ++x)
             {
-                // (sx , sy)
+                
 
-                parser::Ray r = parser::Ray(c.position, getPixelRay(c, x, y).normalized() , 0);
+                parser::Ray r = parser::Ray(c.position, getPixelRay(c, x, y).normalized());
 
                 parser::HitRecord closestHit;
 
-                renderRay(scene,r,closestHit);
+                renderRay(scene,r,closestHit,true);
                 
+        
+
                 int pixelIndex = (y * width + x) * 3; 
 
                 if(closestHit.hit)
                         {                    
-                            parser::Vec3i color = GetColor(closestHit, scene, r);
-                            image[pixelIndex] = color.x; // R
-                            image[pixelIndex + 1] = color.y; // G
-                            image[pixelIndex + 2] = color.z; // B
+                            parser::Vec3i color = GetColor(closestHit, scene, r, 0);
+                            image[pixelIndex] = color.x; 
+                            image[pixelIndex + 1] = color.y; 
+                            image[pixelIndex + 2] = color.z; 
                         }
                         else
                         {
                             
-                            image[pixelIndex] = scene.background_color.x; // R
-                            image[pixelIndex + 1] = scene.background_color.y; // G
-                            image[pixelIndex + 2] = scene.background_color.z; // B
+                            image[pixelIndex] = scene.background_color.x; 
+                            image[pixelIndex + 1] = scene.background_color.y; 
+                            image[pixelIndex + 2] = scene.background_color.z; 
                         }
                 
             }
@@ -590,12 +540,20 @@ int main(int argc, char* argv[])
         
         write_ppm(filename.c_str(), image, width, height);
 
+        delete[] image;
+        std::cout << "done\n";
+
     }
+
+    
 
     auto end = std::chrono::high_resolution_clock::now();
 
-    std::chrono::duration<double> elapsed = end - start;    // saniye cinsinden fark
+    std::chrono::duration<double> elapsed = end - start;    
     std::cout << "Total execution time: " << elapsed.count() << " seconds\n";
+    std::cout << "\a" << std::flush;
+
+    return 0;
 
 }
 
